@@ -1,14 +1,17 @@
 import cv2
 import numpy as np
 import time
-#from picamera2 import Picamera2
+from picamera2 import Picamera2
 import matplotlib.pyplot as plt
 from collections import deque
 
 class MineDetector:
     def __init__(self):
         #start camera
-        global cap
+        self.picam = Picamera2()
+        self.picam.configure(self.picam.create_preview_configuration())
+        self.picam.start()
+        
         cap = cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
@@ -233,11 +236,10 @@ class MineDetector:
         try:
             while time.time() - start_time < duration:
                 # Capture frame
-                #frame = self.picam.capture_array()
-                frame_available, frame = cap.read()
-                if not frame_available:
-                    print("Failed to capture frame from camera.")
-                    break
+                frame = self.picam.capture_array()
+                if frame is None:
+                    print("Failed to capture frame")
+                    continue
                 #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 frame_count += 1
                 #cv2.imwrite(f'frame_{frame_count}.jpg', frame)
@@ -286,8 +288,8 @@ class MineDetector:
                 time.sleep(0.5)  # Simulate drone movement
         
         finally:
-            #self.picam.stop()
-            cap.release()
+            self.picam.stop()
+            #cap.release()
             cv2.destroyAllWindows()
         
         print(f"\n=== Detection Complete ===")
